@@ -1,0 +1,42 @@
+{
+    "os": "macOS-14.5-arm64-arm-64bit",
+    "python": "3.12.4",
+    "heartbeatAt": "2024-07-20T09:02:18.093517",
+    "startedAt": "2024-07-20T09:02:15.146880",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "<python with no main file>",
+    "codePathLocal": null,
+    "host": "Zend-MacBook-Pro.local",
+    "username": "zend",
+    "executable": "/Users/zend/Desktop/faster-pytorch/.pixi/envs/default/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3228,
+        "min": 600,
+        "max": 3228
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3228,
+            "min": 600,
+            "max": 3228
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 289.6611671447754
+        }
+    },
+    "gpuapple": {
+        "type": "Apple M1 Pro",
+        "vendor": "sppci_vendor_Apple"
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

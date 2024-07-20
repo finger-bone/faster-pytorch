@@ -1,0 +1,17 @@
+2024-07-20 16:48:31,144 INFO    StreamThr :24870 [internal.py:wandb_internal():85] W&B internal server running at pid: 24870, started at: 2024-07-20 16:48:31.144223
+2024-07-20 16:48:31,146 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status
+2024-07-20 16:48:31,151 INFO    WriterThread:24870 [datastore.py:open_for_write():87] open: /Users/zend/Desktop/faster-pytorch/01Wandb/wandb/run-20240720_164831-d9zrywgv/run-d9zrywgv.wandb
+2024-07-20 16:48:31,152 DEBUG   SenderThread:24870 [sender.py:send():379] send: header
+2024-07-20 16:48:31,152 DEBUG   SenderThread:24870 [sender.py:send():379] send: run
+2024-07-20 16:48:31,965 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:33,468 INFO    SenderThread:24870 [dir_watcher.py:__init__():211] watching files in: /Users/zend/Desktop/faster-pytorch/01Wandb/wandb/run-20240720_164831-d9zrywgv/files
+2024-07-20 16:48:33,469 INFO    SenderThread:24870 [sender.py:_start_run_threads():1188] run started: d9zrywgv with start time 1721465311.143998
+2024-07-20 16:48:34,197 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:36,176 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: keepalive
+2024-07-20 16:48:36,483 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:36,987 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:39,209 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:41,199 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: keepalive
+2024-07-20 16:48:41,497 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:42,007 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
+2024-07-20 16:48:44,257 DEBUG   HandlerThread:24870 [handler.py:handle_request():158] handle_request: status_report
