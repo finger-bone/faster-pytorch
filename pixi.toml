@@ -9,16 +9,19 @@ platforms = ["osx-arm64"]
 [tasks]
 
 [dependencies]
-numpy = ">=2.0.0,<=2.1.0"
-python = ">=3.12.4,<3.13"
-pytorch = ">=2.3.1,<2.4"
-notebook = ">=7.2.1,<7.3"
-jupyter = ">=1.0.0,<1.1"
-plotly = ">=5.22.0,<5.23"
-seaborn = ">=0.13.2,<0.14"
-torchvision = ">=0.18.1,<0.19"
-transformers = ">=4.41.2,<4.42"
-lightning = ">=2.3.3,<2.4"
+python = ">=3.10.4,<3.12"
+black = ">=24.4.2,<24.5"
 
 [pypi-dependencies]
+transformers = ">=4.42.4, <4.43"
+datasets = ">=2.20.0, <2.21"
+torch = ">=2.3.1, <2.4"
+notebook = ">=7.2.1, <7.3"
+jupyter = ">=1.0.0, <1.1"
+plotly = ">=5.22.0, <5.23"
+seaborn = ">=0.13.2, <0.14"
+torchvision = ">=0.18.1, <0.19"
+pytorch-lightning = ">=2.3.3, <2.4"
+pandas = ">=2.2.2, <2.3"
 wandb = ">=0.17.5, <0.18"
+deepspeed = ">=0.14.4, <0.15"
