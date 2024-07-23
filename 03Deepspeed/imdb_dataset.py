@@ -71,6 +71,7 @@ class ImdbDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=collate_fn,
             num_workers=self.num_workers,
+            shuffle=True
         )
     
     def val_dataloader(self):
@@ -87,4 +88,5 @@ class ImdbDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=collate_fn,
             num_workers=self.num_workers,
+            shuffle=True
         )
