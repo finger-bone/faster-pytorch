@@ -75,7 +75,7 @@ accelerate config
 Then, run the training script with `accelerate`.
 
 ```bash
-accelerate train script.py
+accelerate launch script.py
 ```
 
 As for the configuration, it supports many other options, just check the documentation.
