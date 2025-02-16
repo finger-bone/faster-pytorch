@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/fater-pytorch/02Lighting/02/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>PyTorch lightning as Framework - Faster Pytorch</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Faster Pytorch</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../../01Wandb/01/" class="nav-link">Wandb</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../02Lightning/02.md" class="nav-link">Lightning</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../03Deepspeed/03/" class="nav-link">Deepspeed</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../04Fairscale/04.md" class="nav-link">Fairscale</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../05FabricAndAccelerate/05/" class="nav-link">Fabric and Accelerate</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#pytorch-lightning-as-framework" class="nav-link">PyTorch lightning as Framework</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#introduction" class="nav-link">Introduction</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#basic-pipeline-of-pytorch-lightning" class="nav-link">Basic Pipeline of PyTorch lightning</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#callbacks" class="nav-link">Callbacks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#conclusion_1" class="nav-link">Conclusion</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="pytorch-lightning-as-framework">PyTorch lightning as Framework</h1>
+<h2 id="introduction">Introduction</h2>
+<p>This part will presents the pytorch lightning, a comprehensive solution built upon pytorch to provide more convenient and efficient way to train deep learning models. </p>
+<p>Pytorch lightning is a systematic framework for machine learning, rather than pytorch as only a library.</p>
+<p>The reason can be further justified by its convenient integration of many accelerators, which is key to our series of tutorials.</p>
+<p>If you are familiar with the keras in tensorflow, you may find the pytorch lightning is similar to the keras in tensorflow.</p>
+<h2 id="basic-pipeline-of-pytorch-lightning">Basic Pipeline of PyTorch lightning</h2>
+<p>PyTorch lightning segments the training process into several steps to better organize the code. The basic pipeline of PyTorch lightning is as follows,</p>
+<ol>
+<li><strong>Model Definition</strong>: Define the model.</li>
+<li><strong>Data Preparation</strong>: Prepare the dataset and dataloader.</li>
+<li><strong>Training</strong>: Train the model.</li>
+<li><strong>Validation</strong>: Validate the model during training.</li>
+<li><strong>Testing</strong>: Test the trained model.</li>
+</ol>
+<p>The model in pytorch lightning is self-sufficient, which means it contains all the necessary information for training, validation, and testing.</p>
+<p>Next, we will convert the pytorch code in the previous part into pytorch lightning code.</p>
+<h3 id="model-definition">Model Definition</h3>
+<p>Instead of defining the model as <code>torch.nn.Module</code>, we define the model as <code>pl.LightningModule</code>. The <code>pl.LightningModule</code> is a subclass of <code>torch.nn.Module</code> and provides more convenient interfaces for training.</p>
+<p>In addition, if there is any code that moves the tensor, just remove it. The <code>pl.LightningModule</code> will handle it automatically.</p>
+<p>Now firstly create the <code>__init__</code> and <code>forward</code> functions in the model. They are mostly the same as the previous part.</p>
+<pre><code class="language-python">class MnistModel(pl.LightningModule):
+
+    def __init__(
+        self,
+        x_len: int = 28,
+    ):
+        # Convulsion + Attention
+        super(MnistModel, self).__init__()
+        # [batch, channel, x_len, x_len] -&gt; [batch, channel, x_len, x_len]
+        self.conv = pl.Conv2d(
+            in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1
+        )
+        self.relu = nn.ReLU()
+        # [batch, channel, x_len, x_len] -&gt; [batch, channel, x_len/2, x_len/2]
+        self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.conv2 = nn.Conv2d(
+            in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1
+        )
+        # [batch, channel, x_len/2, x_len/2] -&gt; [batch, channel, x_len/4, x_len/4]
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        # [batch, channel, l, l] -&gt; [batch, channel, l * l]
+        self.flatten_before_attn = nn.Flatten(start_dim=-2)
+        # [batch, channel, l * l] -&gt; [batch, channel, l * l]
+        self.attn = nn.MultiheadAttention(
+            embed_dim=(x_len // 4) ** 2, num_heads=1, batch_first=True
+        )
+        # [batch, channel, l * l] -&gt; [batch, channel * l * l]
+        self.flatten_after_attn = nn.Flatten(start_dim=-2)
+        flattened_last_dim = 64 * (x_len // 4) ** 2
+        self.fc1 = nn.Linear(flattened_last_dim, flattened_last_dim * 2)
+        self.activation1 = nn.ReLU()
+        self.fc2 = nn.Linear(flattened_last_dim * 2, flattened_last_dim)
+        self.activation2 = nn.ReLU()
+        self.fc3 = nn.Linear(flattened_last_dim, 10)
+
+        self.loss_fn = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.relu(x)
+        x = self.maxpool1(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.maxpool2(x)
+        x = self.flatten_before_attn(x)
+        x, _ = self.attn(x, x, x)
+        x = self.flatten_after_attn(x)
+        x = self.fc1(x)
+        x = self.activation1(x)
+        x = self.fc2(x)
+        x = self.activation2(x)
+        x = self.fc3(x)
+        return x
+</code></pre>
+<h3 id="data-preparation">Data Preparation</h3>
+<p>Define <code>lightningDataModule</code> to prepare the dataset and dataloader. It is a more convenient way to prepare the dataset and dataloader.</p>
+<pre><code class="language-python">class MnistDataModule(pl.LightningDataModule):
+    def __init__(self, data_dir: str = './data', batch_size: int = 64):
+        super().__init__()
+        self.data_dir = data_dir
+        self.batch_size = batch_size
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+
+    def prepare_data(self):
+        datasets.MNIST(self.data_dir, train=True, download=True)
+        datasets.MNIST(self.data_dir, train=False, download=True)
+
+    def setup(self, stage=None):
+        if stage == 'fit' or stage is None:
+            mnist_full = datasets.MNIST(self.data_dir, train=True, transform=self.transform)
+            self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
+        if stage == 'test' or stage is None:
+            self.mnist_test = datasets.MNIST(self.data_dir, train=False, transform=self.transform)
+
+    def train_dataloader(self):
+        return DataLoader(self.mnist_train, batch_size=self.batch_size, shuffle=True)
+
+    def val_dataloader(self):
+        return DataLoader(self.mnist_val, batch_size=self.batch_size)
+
+    def test_dataloader(self):
+        return DataLoader(self.mnist_test, batch_size=self.batch_size)
+</code></pre>
+<p>The stage parameter in the <code>setup</code> function is used to distinguish the training, validation, and testing stages. It is a string of 'fit', 'test', or None.</p>
+<h3 id="define-optimizer">Define Optimizer</h3>
+<p>Use <code>configure_optimizers</code> to define the optimizer.</p>
+<pre><code class="language-python">class MnistModel(pl.LightningModule):
+
+    # ...
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        return optimizer
+</code></pre>
+<p>If using multiple optimizers and schedulers, you can return a list of optimizers and schedulers.</p>
+<pre><code class="language-python">def configure_optimizers(self):
+    optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+    return [optimizer], [scheduler]
+</code></pre>
+<p>If there were just one, list brackets can be omitted.</p>
+<h3 id="define-steps">Define Steps</h3>
+<p>Define the training, validation, and testing steps.</p>
+<pre><code class="language-python">class MnistModel(pl.LightningModule):
+
+    # ...
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss_fn(y_hat, y)
+        self.log('train_loss', loss)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss_fn(y_hat, y)
+        self.log('val_loss', loss)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss_fn(y_hat, y)
+        self.log('test_loss', loss)
+        return loss
+</code></pre>
+<h3 id="setup-logger-with-wandb">Setup Logger with Wandb</h3>
+<p>The pytorch lightning needs a logger to log the training process. Here we use the wandb, introduced in the last part, as the logger.</p>
+<pre><code class="language-python">run = wandb.init(project='demo', name='lightning-mnist-demo', config={
+    #...
+})
+logger = pl.loggers.WandbLogger(run)
+</code></pre>
+<p>Use <code>self.log</code> to call the log function of the logger.</p>
+<p>In addition, specifically for wandb, you can use <code>wandb.run</code> instead of <code>run</code>.</p>
+<h3 id="train-the-model">Train the Model</h3>
+<p>Create a trainer,</p>
+<pre><code class="language-python">trainer = pl.Trainer(
+    logger=logger,
+    max_epochs=5,
+    log_every_n_steps=10,
+)
+</code></pre>
+<p>Train the model, validation will be automatically performed during training.</p>
+<pre><code class="language-python">model = MnistModel()
+data_module = MnistDataModule()
+trainer.fit(model, data_module)
+</code></pre>
+<h3 id="test-the-model">Test the Model</h3>
+<p>Call <code>trainer.test</code> to test the model.</p>
+<pre><code class="language-python">trainer.test(model, data_module)
+</code></pre>
+<p>Don't forget to call <code>wandb.finish</code> to finish the wandb run.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>After running the code, you will find the training process is more organized and convenient. The pytorch lightning provides a more systematic way to train the model.</p>
+<p>In addition, you may find out that training is already faster than before. This is because the pytorch lightning has integrated many accelerators, such as the GPU, TPU, and so on, and they usually outperform the pytorch.</p>
+<h2 id="callbacks">Callbacks</h2>
+<p>After presenting the basic pipeline of pytorch lighting. Now, we will introduce the most important concept in pytorch lightning, the callbacks.</p>
+<p>To use callbacks, use fill the <code>callbacks</code> parameter in the <code>Trainer</code>.</p>
+<pre><code class="language-python">trainer = pl.Trainer(
+    logger=logger,
+    max_epochs=5,
+    callbacks=[checkpoint_callback, early_stopping_callback, lr_monitor],
+)
+</code></pre>
+<p>The callbacks are used to customize the training process. Here, this part will familiarize you with the most commonly used built-in callbacks and custom callbacks.</p>
+<h3 id="built-in-callbacks">Built-in Callbacks</h3>
+<h4 id="modelcheckpoint">ModelCheckpoint</h4>
+<p>The <code>ModelCheckpoint</code> callback is used to save the model during training. It can save the best model, the last model, or the model at a specific epoch.</p>
+<pre><code class="language-python">checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    monitor='val_loss',
+    dirpath='./checkpoints',
+    filename='mnist-{epoch:02d}-{val_loss:.2f}',
+    save_top_k=3,
+    mode='min',
+)
+</code></pre>
+<h4 id="earlystopping">EarlyStopping</h4>
+<p>The <code>EarlyStopping</code> callback is used to stop the training when the monitored metric stops improving.</p>
+<pre><code class="language-python">early_stopping_callback = pl.callbacks.EarlyStopping(
+    monitor='val_loss',
+    patience=3,
+    mode='min',
+)
+</code></pre>
+<h4 id="learningratemonitor">LearningRateMonitor</h4>
+<p>The <code>LearningRateMonitor</code> callback is used to log the learning rate during training.</p>
+<pre><code class="language-python">lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval='step')
+</code></pre>
+<h3 id="custom-callbacks">Custom Callbacks</h3>
+<p>You can also define custom callbacks by subclassing <code>pl.Callback</code>.</p>
+<pre><code class="language-python">class CustomCallback(pl.Callback):
+    def on_train_start(self, trainer, pl_module):
+        print('Training is started!')
+
+    def on_train_end(self, trainer, pl_module):
+        print('Training is ended!')
+</code></pre>
+<h2 id="conclusion_1">Conclusion</h2>
+<p>This part has introduced the pytorch lightning, a comprehensive solution built upon pytorch to provide more convenient and efficient way to train deep learning models.</p>
+<p>Following parts of the series will use pytorch lighting as the major framework, then introduce multiple libraries for accelerating the training process, starting with deepspeed in the next part.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/jquery-3.6.0.min.js"></script>
+        <script src="../../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

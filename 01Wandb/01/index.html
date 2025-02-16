@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://finger-bone.github.io/fater-pytorch/01Wandb/01/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Wandb - Faster Pytorch</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/color-brewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Faster Pytorch</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Wandb</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../02Lightning/02.md" class="nav-link">Lightning</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../03Deepspeed/03/" class="nav-link">Deepspeed</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../04Fairscale/04.md" class="nav-link">Fairscale</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../05FabricAndAccelerate/05/" class="nav-link">Fabric and Accelerate</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../03Deepspeed/03/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#training-monitor-with-wandb" class="nav-link">Training Monitor with Wandb</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#introduction" class="nav-link">Introduction</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#construct-a-model" class="nav-link">Construct a Model</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#working-with-wandb" class="nav-link">Working with Wandb</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#finished-dashboard" class="nav-link">Finished Dashboard</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="training-monitor-with-wandb">Training Monitor with Wandb</h1>
+<h2 id="introduction">Introduction</h2>
+<p>Before actually introducing any specific acceleration tools, we first presents a tool to monitor the training process.</p>
+<p>The most artless way to do so is to print, which is inefficient, slow, bad for the eyes and not very informative. Tensor Board, the monitor tool for TensorFlow, is a good choice, but it is not very convenient to use with PyTorch, albeit there is a PyTorch version of it.</p>
+<p>Currently, wandb, aka weights and bias, works the best for PyTorch. It is easy to use, flexible, informative, and has a good UI. It is also free to use, which is a big plus. However, the downside is that it requires an account, which is a cost for being a centralized platform.</p>
+<h2 id="construct-a-model">Construct a Model</h2>
+<p>This project uses a model for MNIST classification. </p>
+<pre><code class="language-python">class MnistModel(nn.Module):
+
+    def __init__(
+        self,
+        x_len: int = 28,
+    ):
+        # Convulsion + Attention
+        super(MnistModel, self).__init__()
+        # [batch, channel, x_len, x_len] -&gt; [batch, channel, x_len, x_len]
+        self.conv = nn.Conv2d(
+            in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1
+        )
+        self.relu = nn.ReLU()
+        # [batch, channel, x_len, x_len] -&gt; [batch, channel, x_len/2, x_len/2]
+        self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.conv2 = nn.Conv2d(
+            in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1
+        )
+        # [batch, channel, x_len/2, x_len/2] -&gt; [batch, channel, x_len/4, x_len/4]
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        # [batch, channel, l, l] -&gt; [batch, channel, l * l]
+        self.flatten_before_attn = nn.Flatten(start_dim=-2)
+        # [batch, channel, l * l] -&gt; [batch, channel, l * l]
+        self.attn = nn.MultiheadAttention(
+            embed_dim=(x_len // 4) ** 2, num_heads=1, batch_first=True
+        )
+        # [batch, channel, l * l] -&gt; [batch, channel * l * l]
+        self.flatten_after_attn = nn.Flatten(start_dim=-2)
+        flattened_last_dim = 64 * (x_len // 4) ** 2
+        self.fc1 = nn.Linear(flattened_last_dim, flattened_last_dim * 2)
+        self.activation1 = nn.ReLU()
+        self.fc2 = nn.Linear(flattened_last_dim * 2, flattened_last_dim)
+        self.activation2 = nn.ReLU()
+        self.fc3 = nn.Linear(flattened_last_dim * 2, 10)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.relu(x)
+        x = self.maxpool1(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.maxpool2(x)
+        x = self.flatten_before_attn(x)
+        x, _ = self.attn(x, x, x)
+        x = self.flatten_after_attn(x)
+        x = self.fc1(x)
+        x = self.activation1(x)
+        x = self.fc2(x)
+        x = self.activation2(x)
+        x = self.fc3(x)
+        return x
+</code></pre>
+<h2 id="working-with-wandb">Working with Wandb</h2>
+<h3 id="before-training">Before Training</h3>
+<p>Before training, you should install wandb, and login with either command <code>wandb login</code> or calling <code>wandb.login()</code> in the code. This only needs to be done once per computer.</p>
+<p>First, use the init function to create a run. In wandb, you can create multiple projects, each project containing several runs. Adding tags is also supported for searching.</p>
+<p>It is suggested that you put the hyper parameters in the wandb configuration to view it on the panel.</p>
+<pre><code class="language-python">wandb.init(
+    project=&quot;demo&quot;,
+    name=&quot;mnist-demo&quot;,
+    tags=[&quot;demo&quot;],
+    config={
+        &quot;lr&quot;: 1e-4,
+        &quot;epoch&quot;: 3,
+        &quot;batch_size&quot;: 64,
+        &quot;weight_decay&quot;: 1e-5
+    }
+)
+</code></pre>
+<h3 id="in-training">In Training</h3>
+<h4 id="casual-logging">Casual Logging</h4>
+<p>In training, just log anything you'd like to check with <code>wandb.log</code>, loss especially.</p>
+<pre><code class="language-python">loss_fn = nn.CrossEntropyLoss()
+for ep in range(wandb.config.epoch):
+    for idx, (x, y) in enumerate(train_loader):
+        x, y = x.to(device), y.to(device)
+        optim.zero_grad()
+        y_pred = model(x)
+        loss = loss_fn(y_pred, y)
+        loss.backward()
+        optim.step()
+        wandb.log({&quot;loss&quot;: loss.item(), &quot;epoch&quot;: ep, &quot;iter&quot;: idx})
+</code></pre>
+<p>Then you can spontaneously view the infos on the wandb panel. By click the project, the run, a pleasantly arranged board will be available like this,</p>
+<p><img alt="Wandb Dashboard" src="../image.png" /></p>
+<p>Below will introduce some commonly used logging techniques. However, that's not all of them.</p>
+<h4 id="logging-plot-and-table">Logging Plot and Table</h4>
+<p>Or you can specify the plot type. </p>
+<p>To create a plot, you must first create a wandb table. </p>
+<pre><code class="language-python">data = [[x, y] for (x, y) in zip(x_values, y_values)]
+table = wandb.Table(data=data, columns=[&quot;x&quot;, &quot;y&quot;])
+</code></pre>
+<p>You can also use pandas data frame instead of list.</p>
+<p>In addition, table can also contain other types of data, like images. You can use <code>Image</code> function to create that and view later on the dash board.</p>
+<p>Then a plot can be created from the table, like,</p>
+<pre><code class="language-python">wandb.log(
+    {
+        &quot;custom_plot_id&quot;: wandb.plot.line(
+            table, &quot;x&quot;, &quot;y&quot;, title=&quot;Custom Y vs X Line Plot&quot;
+        )
+    }
+)
+</code></pre>
+<p>Of course, you can directly log a table,</p>
+<pre><code class="language-python">wandb.log(
+    {
+        &quot;custom_table_id&quot;: wandb.Table(data=data, columns=[&quot;x&quot;, &quot;y&quot;])
+    }
+)
+</code></pre>
+<h4 id="logging-metrics">Logging Metrics</h4>
+<p>If you do evaluation during training, you might be interested in their statistical representations, like mean, minimum value, and so on, instead of solely a plot.</p>
+<p>You can define a metric like,</p>
+<pre><code class="language-python">wandb.define_metric(&quot;loss&quot;, summary=&quot;min&quot;)
+</code></pre>
+<p>Then just log as usual, and you will also have their respective statistic numbers. However, the key must be the same.</p>
+<h4 id="logging-model">Logging Model</h4>
+<p>In addition, you can also log model for checkpoints,</p>
+<pre><code class="language-python">torch.save(model.state_dict(), f&quot;model_{ep}.pth&quot;)
+wandb.log_model(path=f&quot;model_{ep}.pth&quot;, name=f&quot;model_{ep}&quot;)
+</code></pre>
+<p>Later you can use it as,</p>
+<pre><code class="language-python">run = wandb.init(project=&quot;project_name&quot;)
+downloaded_model_path = run.use_model(name=&quot;model_name&quot;)
+</code></pre>
+<h4 id="logging-files">Logging Files</h4>
+<p>Wandb can log Files, especially datasets with Artifact logging, just use it as,</p>
+<pre><code class="language-python">iris_table_artifact = wandb.Artifact(&quot;iris_artifact&quot;, type=&quot;dataset&quot;)
+iris_table_artifact.add(iris_table, &quot;iris_table&quot;)
+iris_table_artifact.add_file(&quot;iris.csv&quot;)
+run = wandb.init(project=&quot;tables-walkthrough&quot;)
+run.log_artifact(iris_table_artifact)
+</code></pre>
+<p>Although directly logging a table is allowed, logging as artifact has an increased row capacity.</p>
+<h3 id="after-training">After training</h3>
+<p>After training, you'd always want testing. If testing metrics is desired to be stored, you'd typically put that in the wandb summary, like,</p>
+<pre><code class="language-python">wandb.summary[&quot;acc&quot;] = correct / total
+</code></pre>
+<p>After everything is done, call <code>wandb.finish()</code> to finish this run.</p>
+<p>Of course, summary can be accessed anytime after the creation of wandb run. You can also put things like running time, steps per seconds to it.</p>
+<h2 id="finished-dashboard">Finished Dashboard</h2>
+<p><img alt="Overview" src="../image-1.png" /></p>
+<p><img alt="Artifacts" src="../image-2.png" /></p>
+<p><img alt="Charts" src="../image-3.png" /></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/jquery-3.6.0.min.js"></script>
+        <script src="../../js/bootstrap.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
