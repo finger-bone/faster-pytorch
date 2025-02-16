@@ -8,7 +8,7 @@ theme:
     text: Inter
     code: Fira Code
 
-docs_dir: .
+docs_dir: notes
 
 nav:
 - Wandb: 01Wandb/01.md
