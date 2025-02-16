@@ -11,11 +11,11 @@ theme:
 docs_dir: notes
 
 nav:
-- Wandb: 01Wandb/01.md
-- Lightning: 02Lightning/02.md
-- Deepspeed: 03Deepspeed/03.md
-- Fairscale: 04Fairscale/04.md
-- Fabric and Accelerate: 05FabricAndAccelerate/05.md
+- Wandb: 01.md
+- Lightning: 02.md
+- Deepspeed: 03.md
+- Fairscale: 04.md
+- Fabric and Accelerate: 05.md
 
 extra_javascript:
 - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
