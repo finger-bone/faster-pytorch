@@ -1,6 +1,6 @@
 site_name: Faster Pytorch
 site_url: https://finger-bone.github.io/fater-pytorch/
-site_description: An introduction to accelerating PyTorch
+site_description: An introduction to accelerating PyTorch tools
 
 theme:
   name: lux
