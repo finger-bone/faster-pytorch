@@ -1,0 +1,24 @@
+site_name: Faster Pytorch
+site_url: https://finger-bone.github.io/fater-pytorch/
+site_description: An introduction to accelerating PyTorch
+
+theme:
+  name: lux
+  font:
+    text: Inter
+    code: Fira Code
+
+docs_dir: .
+
+nav:
+- Wandb: 01Wandb/01.md
+- Lightning: 02Lightning/02.md
+- Deepspeed: 03Deepspeed/03.md
+- Fairscale: 04Fairscale/04.md
+- Fabric and Accelerate: 05FabricAndAccelerate/05.md
+
+extra_javascript:
+- https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+markdown_extensions:
+  mdx_math:
+    enable_dollar_delimiter: true
